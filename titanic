@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-export APP_PORT=${APP_PORT:-80}
-export MYSQL_PORT=${MYSQL_PORT:-3306}
 
 # Create base docker-compose command to run
 COMPOSE="docker-compose -f docker-compose.yml"
@@ -140,6 +138,19 @@ if [ $# -gt 0 ]; then
         echo "Please enter the name of the database:"
         read DATABASE_NAME  
 
+        # Create a new db if requested
+        read -p "Skip creating the database? If no is selected, one will be created for you. (y/n)" choice
+        case "$choice" in 
+        y|Y ) echo "Database creation was skipped.";;
+        n|N ) 
+            echo ""
+            echo "Creating the $DATABASE_NAME database now..."
+            docker-compose exec -T silverstripe mysql -hdatabase -uroot -e "create database $DATABASE_NAME"
+            echo "The $DATABASE_NAME database was created successfully.";;
+        * ) echo "invalid";;
+        esac
+
+        echo ""
         echo "Please enter the name of the SQL to import:"
         read SQLFILE  
 
