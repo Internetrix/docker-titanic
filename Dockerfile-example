@@ -1,0 +1,25 @@
+FROM {SILVERSTRIPE_IMAGE}
+MAINTAINER Jon Su
+
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/bin/install-php-extensions
+
+# Install Composer
+COPY --from=composer /usr/bin/composer /usr/bin/composer2
+COPY --from=composer:1.10.22 /usr/bin/composer /usr/bin/composer1
+
+# Install Yarn
+RUN curl https://deb.nodesource.com/setup_12.x | bash
+RUN curl https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+RUN apt-get update && apt-get install -y nodejs yarn
+
+# Install Support tools
+RUN apt-get -qqy install sudo wget telnet nano vim curl make git bzip2 zip unzip gettext-base locales cifs-utils software-properties-common dnsutils iputils-ping net-tools mailutils mariadb-client
+
+# Set error handling
+RUN echo 'date.timezone = Pacific/Sydney' > "$PHP_INI_DIR/conf.d/timezone.ini" && \ 
+    { \
+        echo 'log_errors = On'; \
+        echo 'error_log = /dev/stderr'; \
+    } > "$PHP_INI_DIR/conf.d/errors.ini"
+
