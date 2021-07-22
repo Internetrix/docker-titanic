@@ -7,20 +7,28 @@ COMPOSE="docker-compose -f docker-compose.yml"
 
 # If we pass any arguments...
 if [ $# -gt 0 ]; then
-    if [ "$1" == "setup" ]; then
+    if [ "$1" == "init" ]; then
         echo "TITANIC: Initializing Titanic..."
-        if [ -z "$2" ]
-        then
-            echo "Please specify a PHP version without dot as part of the cmd."
-            echo "Expected format: 'bash titanic setup 73 awesomedb'"
-            exit 1
+
+        if [ -f "docker-compose-example.yml" ]; then
+            echo "You are missing the docker-compose-example.yml file. Please readd this to your project."
         fi
-        if [ -z "$3" ]
-        then
-            echo "Please specify a database name as part of the cmd."
-            echo "Expected format: 'bash titanic setup 73 awesomedb'"
-            exit 1
+        if [ -f "Dockerfile-example" ]; then
+            echo "You are missing the Dockerfile-example file. Please readd this to your project."
         fi
+
+        PS3="Please select which PHP version this project runs from the above list: "
+
+        select phpversion in 5.6 7.0 7.1 7.2 7.3 7.4
+        do
+            echo "You selected PHP $phpversion"
+            break;
+        done
+
+        echo "Please enter a name for the database (no spaces or special characters):"
+        read DATABASE_NAME  
+
+        echo "The database will be called: $DATABASE_NAME"
 
         # Refresh docker-compose.yml from scratch
         cp ./docker-compose-example.yml ./docker-compose.yml
@@ -31,26 +39,28 @@ if [ $# -gt 0 ]; then
 
         # Retrieve PHP docker image depending on argument and replace variable
         echo "Retrieving PHP docker image..."
-        if [ "$2" = "70" ]; then
-            sed -i 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.0-apache/g' ./docker-compose.yml
-            sed -i 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.0-apache/g' ./Dockerfile
-        elif [ "$2" = "71" ]; then
-            sed -i 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.1-apache/g' ./docker-compose.yml
-            sed -i 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.1-apache/g' ./Dockerfile
-        elif [ "$2" = "72" ]; then
-            sed -i 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.2-apache/g' ./docker-compose.yml
-            sed -i 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.2-apache/g' ./Dockerfile
-        elif [ "$2" = "73" ]; then
-            sed -i 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.3-apache/g' ./docker-compose.yml
-            sed -i 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.3-apache/g' ./Dockerfile
-        elif [ "$2" = "56" ]; then
-            sed -i 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.2-apache/g' ./docker-compose.yml
-            sed -i 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:5.6-apache/g' ./Dockerfile
+        if [[ $phpversion = '7.0' ]]; then
+            sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.0-apache/g' ./docker-compose.yml
+            sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.0-apache/g' ./Dockerfile
+        elif [[ $phpversion = '7.1' ]]; then
+            sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.1-apache/g' ./docker-compose.yml
+            sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.1-apache/g' ./Dockerfile
+        elif [[ $phpversion = '7.2' ]]; then
+            sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.2-apache/g' ./docker-compose.yml
+            sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.2-apache/g' ./Dockerfile
+        elif [[ $phpversion = '7.3' ]]; then
+            sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.3-apache/g' ./docker-compose.yml
+            sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.3-apache/g' ./Dockerfile
+        elif [[ $phpversion = '7.4' ]]; then
+            sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.4-apache/g' ./docker-compose.yml
+            sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.4-apache/g' ./Dockerfile
+        elif [[ $phpversion = '5.6' ]]; then
+            sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:5.6-apache/g' ./docker-compose.yml
+            sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:5.6-apache/g' ./Dockerfile
         fi
 
         # Use provided database name
-        DATABASE_NAME="$3"
-        sed -i "s/{SS_DATABASE_NAME}/$DATABASE_NAME/g" ./docker-compose.yml
+        sed -i '' "s/{SS_DATABASE_NAME}/$DATABASE_NAME/g" ./docker-compose.yml
 
         echo "TITANIC: Making titanic command available"
         chmod +x titanic
@@ -59,6 +69,17 @@ if [ $# -gt 0 ]; then
         $COMPOSE build
         echo "TITANIC: Finished rebuilding Image..."
         
+
+        # Removing example files
+        echo "TITANIC: Almost done... removing example files"
+        if [ -f "docker-compose-example.yml" ]; then
+            rm docker-compose-example.yml
+        fi
+        if [ -f "Dockerfile-example" ]; then
+            rm Dockerfile-example
+        fi
+        echo "TITANIC: Finished cleaning up files"
+
         echo ""
         echo "TITANIC: Power Up Complete!"
         echo "TITANIC: You can now use Titanic"
@@ -82,46 +103,19 @@ if [ $# -gt 0 ]; then
         $COMPOSE run --rm \
             -w /var/www/html \
             silverstripe \
-            composer "$@"
-        # Change the owner / permissions of the vendor file from root
-        $COMPOSE run --rm \
-            -w /var/www/html \
-            silverstripe \
-            chown -R www-data:www-data vendor
-        $COMPOSE run --rm \
-            -w /var/www/html \
-            silverstripe \
-            chmod 777 -R vendor
+            ssh-add -l && composer "$@"
     elif [ "$1" == "composer1" ]; then
         shift 1
         $COMPOSE run --rm \
             -w /var/www/html \
             silverstripe \
-            composer1 "$@"
-        # Change the owner / permissions of the vendor file from root
-        $COMPOSE run --rm \
-            -w /var/www/html \
-            silverstripe \
-            chown -R www-data:www-data vendor
-        $COMPOSE run --rm \
-            -w /var/www/html \
-            silverstripe \
-            chmod 777 -R vendor
-  elif [ "$1" == "composer2" ]; then
+            ssh-add -l && composer1 "$@"
+    elif [ "$1" == "composer2" ]; then
         shift 1
         $COMPOSE run --rm \
             -w /var/www/html \
             silverstripe \
-            composer2 "$@"
-        # Change the owner / permissions of the vendor file from root
-        $COMPOSE run --rm \
-            -w /var/www/html \
-            silverstripe \
-            chown -R www-data:www-data vendor
-        $COMPOSE run --rm \
-            -w /var/www/html \
-            silverstripe \
-            chmod 777 -R vendor
+            ssh-add -l && composer2 "$@"
     # If "npm" is used, run npm
     # from our node container
     elif [ "$1" == "npm" ]; then
@@ -146,6 +140,22 @@ if [ $# -gt 0 ]; then
     else
         $COMPOSE "$@"
     fi
+
+
+    if [ "$1" == "composer" ] || [ "$1" == "composer1" ] || [ "$1" == "composer2" ]; then
+        # Change the owner / permissions of the vendor file from root
+        $COMPOSE run --rm \
+            -w /var/www/html \
+            silverstripe \
+            chown -R www-data:www-data vendor
+        $COMPOSE run --rm \
+            -w /var/www/html \
+            silverstripe \
+            chmod 777 -R vendor
+    fi
+
+
+
 else
     # Use the docker-compose ps command if nothing else passed through
     $COMPOSE ps
