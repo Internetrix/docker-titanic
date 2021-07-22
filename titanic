@@ -1,18 +1,66 @@
 #!/usr/bin/env bash
 
+VERSION="0.01"
+
 # Create base docker-compose command to run
 COMPOSE="docker-compose -f docker-compose.yml"
+
+helpMenu() {
+    showVersion
+
+    usage="Usage:\n"
+    usage="$usage  ./titanic <cmd> <options>"
+
+    commands="Commands:\n"
+
+    commands="$commands  start                       Start the container environment defined in docker-compose.yml\n"
+    commands="$commands  stop                        Stops the container environment defined in docker-compose.yml\n"
+    commands="$commands  composer <cmds>             Run Composer in the SilverStripe container\n"
+    commands="$commands  composer1 <cmds>            Run Composer Version 1 in the SilverStripe container\n"
+    commands="$commands  composer2 <cmds>            Run Composer Version 2 in the SilverStripe container\n"
+    commands="$commands  importdb                    Perform a MySQL import from an SQL file into a database\n"
+    commands="$commands  exportdb                    Perform a MySQL export of a database\n"
+    commands="$commands  npm <options>               Runs npm using supplied options in the SilverStripe container\n"
+    commands="$commands  yarn <options>              Runs yarn using supplied options in the SilverStripe container\n"
+    commands="$commands  exec <container>            Execute a command in a running container\n"
+    commands="$commands  help                        Shows Help screen\n"
+
+    options="Options:\n"
+    options="$options --help, -h                   Shows Help (this screen)\n"
+    options="$options --version, -V, version       Show Version\n"
+
+    examples="Examples:\n"
+    examples="$examples  $ ./titanic start\n"
+    examples="$examples  $ ./titanic stop\n"
+    examples="$examples  $ ./titanic composer1 install\n"
+    examples="$examples  $ ./titanic importdb\n"
+    examples="$examples  $ ./titanic exportdb\n"
+    examples="$examples  $ ./titanic npm install\n"
+    examples="$examples  $ ./titanic yarn install\n"
+
+    printf "\n"
+    printf "$usage\n\n"
+    printf "$commands\n"
+    printf "$options\n"
+    printf "$examples\n"
+}
+
+showVersion() {
+    printf "Docker Titanic v$VERSION\n"
+}
 
 # If we pass any arguments...
 if [ $# -gt 0 ]; then
     if [ "$1" == "init" ]; then
         echo "TITANIC: Initializing Titanic..."
 
-        if [ -f "docker-compose-example.yml" ]; then
+        if [[ ! -f "docker-compose-example.yml" ]]; then
             echo "You are missing the docker-compose-example.yml file. Please readd this to your project."
+            exit 1
         fi
-        if [ -f "Dockerfile-example" ]; then
+        if [[ ! -f "Dockerfile-example" ]]; then
             echo "You are missing the Dockerfile-example file. Please readd this to your project."
+            exit 1
         fi
 
         PS3="Please select which PHP version this project runs from the above list: "
@@ -36,7 +84,7 @@ if [ $# -gt 0 ]; then
         echo "Refreshing Dockerfile..."
 
         # Retrieve PHP docker image depending on argument and replace variable
-        echo "Retrieving PHP docker image..."
+        echo "Updating docker-compose.yml and Dockerfile with given project-specifc settings..."
         if [[ $phpversion = '7.0' ]]; then
             sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.0-apache/g' ./docker-compose.yml
             sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.0-apache/g' ./Dockerfile
@@ -56,9 +104,12 @@ if [ $# -gt 0 ]; then
             sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:5.6-apache/g' ./docker-compose.yml
             sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:5.6-apache/g' ./Dockerfile
         fi
+        echo "Updated docker-compose.yml and Dockerfile."
 
+        echo "Updating docker-compose.yml with given database name."
         # Use provided database name
         sed -i '' "s/{SS_DATABASE_NAME}/$DATABASE_NAME/g" ./docker-compose.yml
+        echo "Updated docker-compose.yml with given database name."
 
         echo "TITANIC: Making titanic command available"
         chmod +x titanic
@@ -79,8 +130,9 @@ if [ $# -gt 0 ]; then
         echo "TITANIC: Finished cleaning up files"
 
         echo ""
-        echo "TITANIC: Power Up Complete!"
+        echo "TITANIC: Ready to Sail!"
         echo "TITANIC: You can now use Titanic"
+        echo "For available Titanic commands, run: ./titanic --help"
         echo "TITANIC: Try starting it:"
         echo "./titanic start"
 
@@ -167,6 +219,11 @@ if [ $# -gt 0 ]; then
         docker-compose exec -T silverstripe mysqldump -hdatabase -uroot $DATABASE_NAME > $SQLFILE
         echo "Database exported successfully."
     # Else, pass-thru args to docker-compose
+    elif [ "$1" == "--version" ] || [ "$1" == "-v" ] || [ "$1" == "version" ]; then
+        showVersion
+    elif [ "$1" == "--help" ]; then
+       helpMenu
+        exit 1
     else
         $COMPOSE "$@"
     fi
