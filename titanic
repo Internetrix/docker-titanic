@@ -136,11 +136,29 @@ if [ $# -gt 0 ]; then
             -w /var/www/html \
             silverstripe \
             chmod 777 -R node_modules
+    elif [ "$1" == "importdb" ]; then
+        echo "Please enter the name of the database:"
+        read DATABASE_NAME  
+
+        echo "Please enter the name of the SQL to import:"
+        read SQLFILE  
+
+        echo "Importing the contents of $SQLFILE into the $DATABASE_NAME database."
+        docker-compose exec -T silverstripe mysql -hdatabase -uroot $DATABASE_NAME < $SQLFILE
+        echo "Database imported successfully."
+    elif [ "$1" == "exportdb" ]; then
+        echo "Please enter the name of the database to export:"
+        read DATABASE_NAME  
+        echo "Please enter the name of the SQL file to export to (i.e db.sql):"
+        read SQLFILE
+
+        echo "Exporting the contents of the $DATABASE_NAME database to $SQLFILE."
+        docker-compose exec -T silverstripe mysqldump -hdatabase -uroot $DATABASE_NAME > $SQLFILE
+        echo "Database exported successfully."
     # Else, pass-thru args to docker-compose
     else
         $COMPOSE "$@"
     fi
-
 
     if [ "$1" == "composer" ] || [ "$1" == "composer1" ] || [ "$1" == "composer2" ]; then
         # Change the owner / permissions of the vendor file from root
@@ -153,9 +171,6 @@ if [ $# -gt 0 ]; then
             silverstripe \
             chmod 777 -R vendor
     fi
-
-
-
 else
     # Use the docker-compose ps command if nothing else passed through
     $COMPOSE ps

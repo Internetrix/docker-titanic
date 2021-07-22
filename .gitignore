@@ -3,6 +3,6 @@
 
 ##### ...but
 !/.gitignore
-!/docker-compose.yml
+!/Dockerfile-example
 !/docker-compose-example.yml
-!/Dockerfile
+!/titanic
