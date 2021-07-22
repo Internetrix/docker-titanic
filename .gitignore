@@ -1,0 +1,8 @@
+##### ignore everything...
+/*
+
+##### ...but
+!/.gitignore
+!/docker-compose.yml
+!/docker-compose-example.yml
+!/Dockerfile
