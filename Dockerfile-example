@@ -16,6 +16,9 @@ RUN apt-get update && apt-get install -y nodejs yarn
 # Install Support tools
 RUN apt-get -qqy install sudo wget telnet nano vim curl make git bzip2 zip unzip gettext-base locales cifs-utils software-properties-common dnsutils iputils-ping net-tools mailutils mariadb-client
 
+# Install n library so we can switch node version if required
+RUN npm install -g n
+
 # Set error handling
 RUN echo 'date.timezone = Australia/Sydney' > "$PHP_INI_DIR/conf.d/timezone.ini" && \ 
     { \
