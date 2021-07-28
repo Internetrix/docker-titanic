@@ -72,7 +72,7 @@ if [ $# -gt 0 ]; then
         done
 
         echo "Please enter a name for the database (no spaces or special characters):"
-        read DATABASE_NAME  
+        read DATABASE_NAME
 
         echo "The database will be called: $DATABASE_NAME"
 
@@ -83,7 +83,7 @@ if [ $# -gt 0 ]; then
         cp ./Dockerfile-example ./Dockerfile
         echo "Refreshing Dockerfile..."
 
-      
+
         UNAMEOUT="$(uname -s)"
         case "${UNAMEOUT}" in
             Linux*)             MACHINE=linux;;
@@ -142,7 +142,7 @@ if [ $# -gt 0 ]; then
             sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:5.6-apache/g' ./Dockerfile
           fi
         fi
-		
+
         echo "Updated docker-compose.yml and Dockerfile."
 
         echo "Updating docker-compose.yml with given database name."
@@ -156,7 +156,7 @@ if [ $# -gt 0 ]; then
         echo "TITANIC: Rebuilding Image..."
         $COMPOSE build
         echo "TITANIC: Finished rebuilding Image..."
-        
+
 
         # Removing example files
         echo "TITANIC: Almost done... removing example files"
@@ -189,22 +189,13 @@ if [ $# -gt 0 ]; then
     # inside a new container
     elif [ "$1" == "composer" ] || [ "$1" == "comp" ]; then
         shift 1
-        $COMPOSE run --rm \
-            -w /var/www/html \
-            silverstripe \
-            ssh-add -l && composer "$@"
+        docker-compose exec silverstripe /bin/bash -c "ssh-add -l;composer "$@""
     elif [ "$1" == "composer1" ]; then
         shift 1
-        $COMPOSE run --rm \
-            -w /var/www/html \
-            silverstripe \
-            ssh-add -l && composer1 "$@"
+        docker-compose exec silverstripe /bin/bash -c "ssh-add -l;composer1 "$@""
     elif [ "$1" == "composer2" ]; then
         shift 1
-        $COMPOSE run --rm \
-            -w /var/www/html \
-            silverstripe \
-            ssh-add -l && composer2 "$@"
+        docker-compose exec silverstripe /bin/bash -c "ssh-add -l;composer2 "$@""
     # If "npm" is used, run npm
     # from our node container
     elif [ "$1" == "npm" ]; then
@@ -227,13 +218,13 @@ if [ $# -gt 0 ]; then
             chmod 777 -R node_modules
     elif [ "$1" == "importdb" ]; then
         echo "Please enter the name of the database:"
-        read DATABASE_NAME  
+        read DATABASE_NAME
 
         # Create a new db if requested
         read -p "Skip creating the database? If no is selected, one will be created for you. (y/n)" choice
-        case "$choice" in 
+        case "$choice" in
         y|Y ) echo "Database creation was skipped.";;
-        n|N ) 
+        n|N )
             echo ""
             echo "Creating the $DATABASE_NAME database now..."
             docker-compose exec -T silverstripe mysql -hdatabase -uroot -e "create database $DATABASE_NAME"
@@ -243,14 +234,14 @@ if [ $# -gt 0 ]; then
 
         echo ""
         echo "Please enter the name of the SQL to import:"
-        read SQLFILE  
+        read SQLFILE
 
         echo "Importing the contents of $SQLFILE into the $DATABASE_NAME database."
         docker-compose exec -T silverstripe mysql -hdatabase -uroot $DATABASE_NAME < $SQLFILE
         echo "Database imported successfully."
     elif [ "$1" == "exportdb" ]; then
         echo "Please enter the name of the database to export:"
-        read DATABASE_NAME  
+        read DATABASE_NAME
         echo "Please enter the name of the SQL file to export to (i.e db.sql):"
         read SQLFILE
 
