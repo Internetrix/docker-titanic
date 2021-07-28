@@ -83,27 +83,63 @@ if [ $# -gt 0 ]; then
         cp ./Dockerfile-example ./Dockerfile
         echo "Refreshing Dockerfile..."
 
+      
+
         # Retrieve PHP docker image depending on argument and replace variable
         echo "Updating docker-compose.yml and Dockerfile with given project-specifc settings..."
         if [[ $phpversion = '7.0' ]]; then
+          if [ "$MACHINE" == "linux" ]; then
+            sed -i 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.0-apache/g' ./docker-compose.yml
+            sed -i 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.0-apache/g' ./Dockerfile
+          elif [ "$MACHINE" == "mac" ]; then
             sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.0-apache/g' ./docker-compose.yml
             sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.0-apache/g' ./Dockerfile
+          fi
         elif [[ $phpversion = '7.1' ]]; then
+          if [ "$MACHINE" == "linux" ]; then
+            sed -i 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.1-apache/g' ./docker-compose.yml
+            sed -i 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.1-apache/g' ./Dockerfile
+          elif [ "$MACHINE" == "mac" ]; then
             sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.1-apache/g' ./docker-compose.yml
             sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.1-apache/g' ./Dockerfile
+          fi
         elif [[ $phpversion = '7.2' ]]; then
+          if [ "$MACHINE" == "linux" ]; then
+            sed -i 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.2-apache/g' ./docker-compose.yml
+            sed -i 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.2-apache/g' ./Dockerfile
+          elif [ "$MACHINE" == "mac" ]; then
             sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.2-apache/g' ./docker-compose.yml
             sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.2-apache/g' ./Dockerfile
+          fi
         elif [[ $phpversion = '7.3' ]]; then
+          if [ "$MACHINE" == "linux" ]; then
+            sed -i 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.3-apache/g' ./docker-compose.yml
+            sed -i 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.3-apache/g' ./Dockerfile
+          elif [ "$MACHINE" == "mac" ]; then
             sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.3-apache/g' ./docker-compose.yml
             sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.3-apache/g' ./Dockerfile
+          fi
         elif [[ $phpversion = '7.4' ]]; then
+          if [ "$MACHINE" == "linux" ]; then
+            sed -i 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.4-apache/g' ./docker-compose.yml
+            sed -i 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.4-apache/g' ./Dockerfile
+          elif [ "$MACHINE" == "mac" ]; then
             sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:7.4-apache/g' ./docker-compose.yml
             sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:7.4-apache/g' ./Dockerfile
+          fi
         elif [[ $phpversion = '5.6' ]]; then
+        if [ "$MACHINE" == "linux" ]; then
+            sed -i 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:5.6-apache/g' ./docker-compose.yml
+            sed -i 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:5.6-apache/g' ./Dockerfile
+          elif [ "$MACHINE" == "mac" ]; then
             sed -i '' 's/{SS_IMAGE_START}/brettt89\/silverstripe-web:5.6-apache/g' ./docker-compose.yml
             sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:5.6-apache/g' ./Dockerfile
+          fi
         fi
+		
+		exit 1
+
+		
         echo "Updated docker-compose.yml and Dockerfile."
 
         echo "Updating docker-compose.yml with given database name."
