@@ -84,7 +84,13 @@ if [ $# -gt 0 ]; then
         echo "Refreshing Dockerfile..."
 
       
-
+        UNAMEOUT="$(uname -s)"
+        case "${UNAMEOUT}" in
+            Linux*)             MACHINE=linux;;
+            Darwin*)            MACHINE=mac;;
+            MINGW64_NT-10.0*)   MACHINE=mingw64;;
+            *)                  MACHINE="UNKNOWN"
+        esac
         # Retrieve PHP docker image depending on argument and replace variable
         echo "Updating docker-compose.yml and Dockerfile with given project-specifc settings..."
         if [[ $phpversion = '7.0' ]]; then
@@ -136,9 +142,6 @@ if [ $# -gt 0 ]; then
             sed -i '' 's/{SILVERSTRIPE_IMAGE}/brettt89\/silverstripe-web:5.6-apache/g' ./Dockerfile
           fi
         fi
-		
-		exit 1
-
 		
         echo "Updated docker-compose.yml and Dockerfile."
 
